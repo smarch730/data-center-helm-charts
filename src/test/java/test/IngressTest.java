@@ -50,6 +50,21 @@ class IngressTest {
 
     @ParameterizedTest
     @EnumSource
+    void ingress_create_with_custom_class_name(Product product) throws Exception {
+        final var resources = helm.captureKubeResourcesFromHelmChart(product, Map.of(
+                "ingress.create", "true",
+                "ingress.className", "my-custom-nginx"));
+
+        final var ingresses = resources.getAll(Kind.Ingress);
+
+        for (KubeResource ingress : ingresses) {
+            assertThat(ingress.getMetadata().path("annotations"))
+                    .isObject(Map.of("kubernetes.io/ingress.class", "my-custom-nginx"));
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource
     void ingress_create_tls (Product product) throws Exception {
         final var resources = helm.captureKubeResourcesFromHelmChart(product, Map.of(
                 "ingress.create", "true",
